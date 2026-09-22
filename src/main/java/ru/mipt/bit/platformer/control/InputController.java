@@ -1,31 +1,29 @@
 package ru.mipt.bit.platformer.control;
 
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.Gdx;
-import ru.mipt.bit.platformer.model.Direction;
-import java.util.EnumMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class InputController {
-    private static final Map<Direction, List<Integer>> KEYS = new EnumMap<>(Direction.class);
+    private final KeyboardState keyboard;
+    private final Map<Integer, Command> bindings = new LinkedHashMap<>();
 
-    static {
-        KEYS.put(Direction.UP, List.of(Keys.UP, Keys.W));
-        KEYS.put(Direction.LEFT, List.of(Keys.LEFT, Keys.A));
-        KEYS.put(Direction.DOWN, List.of(Keys.DOWN, Keys.S));
-        KEYS.put(Direction.RIGHT, List.of(Keys.RIGHT, Keys.D));
+    public InputController(KeyboardState keyboard) {
+        this.keyboard = keyboard;
     }
 
-    public Optional<Direction> getPressedDirection() {
-        for (Map.Entry<Direction, List<Integer>> entry : KEYS.entrySet()) {
-            for (int key : entry.getValue()) {
-                if (Gdx.input.isKeyPressed(key)) {
-                    return Optional.of(entry.getKey());
-                }
+    public void bind(int keycode, Command command) {
+        bindings.put(keycode, command);
+    }
+
+    public List<Command> getActiveCommands() {
+        List<Command> active = new ArrayList<>();
+        for (Map.Entry<Integer, Command> binding : bindings.entrySet()) {
+            if (keyboard.isPressed(binding.getKey())) {
+                active.add(binding.getValue());
             }
         }
-        return Optional.empty();
+        return active;
     }
 }

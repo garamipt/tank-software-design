@@ -1,59 +1,77 @@
 package ru.mipt.bit.platformer;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.GridPoint2;
+import com.badlogic.gdx.Input.Keys;
 
 import ru.mipt.bit.platformer.control.InputController;
-import ru.mipt.bit.platformer.model.Level;
+import ru.mipt.bit.platformer.model.GameWorld;
+import ru.mipt.bit.platformer.graphics.GameGraphics;
+import ru.mipt.bit.platformer.model.Direction;
+import ru.mipt.bit.platformer.model.CollisionChecker;
 import ru.mipt.bit.platformer.model.Tank;
-import ru.mipt.bit.platformer.model.Tree;
-
-import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
+import ru.mipt.bit.platformer.control.MoveCommand;
+import ru.mipt.bit.platformer.control.GdxKeyboardState;
+import ru.mipt.bit.platformer.control.Command;
 
 public class GameDesktopLauncher implements ApplicationListener {
     private Batch batch;
-    private Level level;
-    private Tank playerTank;
-    private Texture tankTexture;
-    private Texture treeTexture;
+    private GameWorld world;
+    private GameGraphics graphics;
     private InputController inputController;
+
+    private static final Map<Integer, Direction> MOVEMENT_KEYS = new LinkedHashMap<>();
+
+    static {
+        MOVEMENT_KEYS.put(Keys.UP, Direction.UP);
+        MOVEMENT_KEYS.put(Keys.W, Direction.UP);
+        MOVEMENT_KEYS.put(Keys.LEFT, Direction.LEFT);
+        MOVEMENT_KEYS.put(Keys.A, Direction.LEFT);
+        MOVEMENT_KEYS.put(Keys.DOWN, Direction.DOWN);
+        MOVEMENT_KEYS.put(Keys.S, Direction.DOWN);
+        MOVEMENT_KEYS.put(Keys.RIGHT, Direction.RIGHT);
+        MOVEMENT_KEYS.put(Keys.D, Direction.RIGHT);
+    }
+
+
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        inputController = new InputController();
 
-        level = new Level("level.tmx", batch);
+        LevelLoader levelLoader = new LevelLoader("level.tmx");
+        world = levelLoader.loadWorld();
+        graphics = levelLoader.loadGraphics(world, batch);
 
-        tankTexture = new Texture("images/tank_blue.png");
-        playerTank = new Tank(new GridPoint2(1, 1), new TextureRegion(tankTexture), level.getTileMovement());
+        inputController = new InputController(new GdxKeyboardState());
 
-        treeTexture = new Texture("images/greenTree.png");
-        level.addObstacle(new Tree(new GridPoint2(1, 3), new TextureRegion(treeTexture), level.getGroundLayer()));
+        Tank player = world.getPlayer();
+
+        CollisionChecker collisionChecker = world.getLevel();
+
+        MOVEMENT_KEYS.forEach((key, direction) -> {
+            inputController.bind(key, new MoveCommand(player, direction, collisionChecker));
+        });
+
+        
     }
 
     @Override
     public void render() {
+        for (Command command : inputController.getActiveCommands()) {
+            command.execute();
+        }
 
-        Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
-        Gdx.gl.glClear(GL_COLOR_BUFFER_BIT);
+        world.update(Gdx.graphics.getDeltaTime());
 
-        inputController.getPressedDirection().ifPresent(direction -> playerTank.move(direction, level));
-
-        playerTank.update(Gdx.graphics.getDeltaTime());
-
-        level.render();
-        batch.begin();
-        playerTank.draw(batch);
-        level.drawObstacles(batch);
-        batch.end();
+        graphics.render();
     }
 
     @Override
@@ -73,11 +91,7 @@ public class GameDesktopLauncher implements ApplicationListener {
 
     @Override
     public void dispose() {
-        // dispose of all the native resources (classes which implement
-        // com.badlogic.gdx.utils.Disposable)
-        treeTexture.dispose();
-        tankTexture.dispose();
-        level.dispose();
+        graphics.dispose();
         batch.dispose();
     }
 
