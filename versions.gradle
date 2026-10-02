@@ -9,4 +9,8 @@ gdx.backend_lwjgl3 = "com.badlogicgames.gdx:gdx-backend-lwjgl3:$versions.gdx"
 gdx.platform_desktop = "com.badlogicgames.gdx:gdx-platform:$versions.gdx:natives-desktop"
 deps.gdx = gdx
 
+versions.junit = '5.10.2'
+deps.junit = "org.junit.jupiter:junit-jupiter:$versions.junit"
+deps.junit_launcher = "org.junit.platform:junit-platform-launcher"
+
 ext.deps = deps

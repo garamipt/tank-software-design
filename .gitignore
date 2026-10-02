@@ -16,3 +16,5 @@ gradle-app.setting
 
 .idea
 commit-message.txt
+
+*.DS_Store
