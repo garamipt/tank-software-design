@@ -12,15 +12,11 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-
 import java.util.NoSuchElementException;
-
-import static com.badlogic.gdx.math.MathUtils.clamp;
 
 public final class GdxGameUtils {
 
-    private GdxGameUtils() {
-    }
+    private GdxGameUtils() {}
 
     public static MapRenderer createSingleLayerMapRenderer(TiledMap tiledMap, Batch batch) {
         TiledMapTileLayer tileLayer = getSingleLayer(tiledMap);
@@ -47,19 +43,28 @@ public final class GdxGameUtils {
         }
     }
 
-    public static Rectangle moveRectangleAtTileCenter(TiledMapTileLayer tileLayer, Rectangle rectangle,
-            GridPoint2 tileCoordinates) {
+    public static Rectangle moveRectangleAtTileCenter(
+            TiledMapTileLayer tileLayer, Rectangle rectangle, GridPoint2 tileCoordinates) {
         Vector2 tileCenter = calculateTileCenter(tileLayer, tileCoordinates);
         return rectangle.setCenter(tileCenter);
     }
 
-    public static void drawTextureRegionUnscaled(Batch batch, TextureRegion region, Rectangle rectangle,
-            float rotation) {
+    public static void drawTextureRegionUnscaled(
+            Batch batch, TextureRegion region, Rectangle rectangle, float rotation) {
         int regionWidth = region.getRegionWidth();
         int regionHeight = region.getRegionHeight();
         float regionOriginX = regionWidth / 2f;
         float regionOriginY = regionHeight / 2f;
-        batch.draw(region, rectangle.x, rectangle.y, regionOriginX, regionOriginY, regionWidth, regionHeight, 1f, 1f,
+        batch.draw(
+                region,
+                rectangle.x,
+                rectangle.y,
+                regionOriginX,
+                regionOriginY,
+                regionWidth,
+                regionHeight,
+                1f,
+                1f,
                 rotation);
     }
 
@@ -69,8 +74,8 @@ public final class GdxGameUtils {
                 .setHeight(region.getRegionHeight());
     }
 
-
-    private static Vector2 calculateTileCenter(TiledMapTileLayer tileLayer, GridPoint2 tileCoordinates) {
+    private static Vector2 calculateTileCenter(
+            TiledMapTileLayer tileLayer, GridPoint2 tileCoordinates) {
         int tileWidth = tileLayer.getTileWidth();
         int tileHeight = tileLayer.getTileHeight();
         int tileBottomLeftCornerX = tileCoordinates.x * tileWidth;

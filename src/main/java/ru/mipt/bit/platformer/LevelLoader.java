@@ -1,17 +1,15 @@
 package ru.mipt.bit.platformer;
 
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.graphics.g2d.Batch;
-
-import ru.mipt.bit.platformer.model.*;
-import ru.mipt.bit.platformer.graphics.GameGraphics;
-
-import java.util.List;
-
 import static ru.mipt.bit.platformer.graphics.GdxGameUtils.getSingleLayer;
+
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.math.GridPoint2;
+import java.util.List;
+import ru.mipt.bit.platformer.graphics.GameGraphics;
+import ru.mipt.bit.platformer.model.*;
 
 public class LevelLoader {
     private static final String TANK_TEXTURE_PATH = "images/tank_blue.png";
@@ -26,12 +24,15 @@ public class LevelLoader {
     }
 
     public GameWorld loadWorld() {
-        Level level = new Level(groundLayer.getWidth(), groundLayer.getHeight(), List.of(
-                new Obstacle(new GridPoint2(3, 3)),
-                new Obstacle(new GridPoint2(4, 3)),
-                new Obstacle(new GridPoint2(5, 3))
-        ));
-        Tank player = new Tank(new GridPoint2(1,1), Direction.UP);
+        Level level =
+                new Level(
+                        groundLayer.getWidth(),
+                        groundLayer.getHeight(),
+                        List.of(
+                                new Obstacle(new GridPoint2(3, 3)),
+                                new Obstacle(new GridPoint2(4, 3)),
+                                new Obstacle(new GridPoint2(5, 3))));
+        Tank player = new Tank(new GridPoint2(1, 1), Direction.UP);
 
         return new GameWorld(level, player);
     }

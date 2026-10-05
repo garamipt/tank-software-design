@@ -1,7 +1,6 @@
 package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
-
 import java.util.List;
 
 public class Level implements CollisionChecker {
@@ -15,7 +14,7 @@ public class Level implements CollisionChecker {
         this.obstacles = List.copyOf(obstacles);
     }
 
-    @Override 
+    @Override
     public boolean isFree(GridPoint2 point) {
         if (isOutOfBounds(point)) {
             return false;

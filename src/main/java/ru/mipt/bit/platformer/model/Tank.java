@@ -1,8 +1,8 @@
 package ru.mipt.bit.platformer.model;
 
-import com.badlogic.gdx.math.GridPoint2;
-
 import static com.badlogic.gdx.math.MathUtils.clamp;
+
+import com.badlogic.gdx.math.GridPoint2;
 
 public class Tank implements GameObject {
     private static final float MOVEMENT_SPEED = 0.4f;
@@ -34,7 +34,11 @@ public class Tank implements GameObject {
     }
 
     public void update(float deltaTime) {
-        movementProgress = clamp(movementProgress + deltaTime / MOVEMENT_SPEED, MOVEMENT_STARTED, MOVEMENT_COMPLETED);
+        movementProgress =
+                clamp(
+                        movementProgress + deltaTime / MOVEMENT_SPEED,
+                        MOVEMENT_STARTED,
+                        MOVEMENT_COMPLETED);
         if (!isMoving()) {
             coordinates.set(destination);
         }
@@ -43,12 +47,12 @@ public class Tank implements GameObject {
     private boolean isMoving() {
         return movementProgress < MOVEMENT_COMPLETED;
     }
-    
+
     @Override
     public GridPoint2 getCoordinates() {
         return new GridPoint2(coordinates);
     }
-    
+
     @Override
     public GridPoint2 getDestination() {
         return new GridPoint2(destination);
