@@ -2,6 +2,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id 'application'
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 apply from: 'versions.gradle'
@@ -26,6 +27,21 @@ dependencies {
     implementation deps.gdx.platform_desktop
     testImplementation deps.junit
     testRuntimeOnly deps.junit_launcher
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat('1.19.2').aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 test {

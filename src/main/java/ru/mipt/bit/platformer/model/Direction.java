@@ -25,5 +25,4 @@ public enum Direction {
     public GridPoint2 stepFrom(GridPoint2 from) {
         return new GridPoint2(from).add(dx, dy);
     }
-
 }

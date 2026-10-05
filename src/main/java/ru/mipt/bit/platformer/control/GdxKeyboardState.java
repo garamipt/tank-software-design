@@ -1,4 +1,5 @@
 package ru.mipt.bit.platformer.control;
+
 import com.badlogic.gdx.Gdx;
 
 public class GdxKeyboardState implements KeyboardState {
@@ -6,5 +7,4 @@ public class GdxKeyboardState implements KeyboardState {
     public boolean isPressed(int keycode) {
         return Gdx.input.isKeyPressed(keycode);
     }
-
 }

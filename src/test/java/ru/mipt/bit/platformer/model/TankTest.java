@@ -1,9 +1,9 @@
 package ru.mipt.bit.platformer.model;
 
-import org.junit.jupiter.api.Test;
-import com.badlogic.gdx.math.GridPoint2;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.badlogic.gdx.math.GridPoint2;
+import org.junit.jupiter.api.Test;
 
 public class TankTest {
 
@@ -29,7 +29,7 @@ public class TankTest {
         assertEquals(Direction.UP, tank.getDirection());
     }
 
-    @Test 
+    @Test
     public void shouldIgnoreMoveCommandWhileMoving() {
         Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT);
 

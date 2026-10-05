@@ -9,7 +9,7 @@ public class Obstacle implements GameObject {
         this.coordinates = new GridPoint2(coordinates);
     }
 
-    @Override 
+    @Override
     public GridPoint2 getCoordinates() {
         return new GridPoint2(coordinates);
     }

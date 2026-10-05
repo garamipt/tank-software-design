@@ -1,25 +1,23 @@
 package ru.mipt.bit.platformer;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.Input.Keys;
-
-import ru.mipt.bit.platformer.control.InputController;
-import ru.mipt.bit.platformer.model.GameWorld;
-import ru.mipt.bit.platformer.graphics.GameGraphics;
-import ru.mipt.bit.platformer.model.Direction;
-import ru.mipt.bit.platformer.model.CollisionChecker;
-import ru.mipt.bit.platformer.model.Tank;
-import ru.mipt.bit.platformer.control.MoveCommand;
-import ru.mipt.bit.platformer.control.GdxKeyboardState;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import ru.mipt.bit.platformer.control.Command;
+import ru.mipt.bit.platformer.control.GdxKeyboardState;
+import ru.mipt.bit.platformer.control.InputController;
+import ru.mipt.bit.platformer.control.MoveCommand;
+import ru.mipt.bit.platformer.graphics.GameGraphics;
+import ru.mipt.bit.platformer.model.CollisionChecker;
+import ru.mipt.bit.platformer.model.Direction;
+import ru.mipt.bit.platformer.model.GameWorld;
+import ru.mipt.bit.platformer.model.Tank;
 
 public class GameDesktopLauncher implements ApplicationListener {
     private Batch batch;
@@ -40,8 +38,6 @@ public class GameDesktopLauncher implements ApplicationListener {
         MOVEMENT_KEYS.put(Keys.D, Direction.RIGHT);
     }
 
-
-
     @Override
     public void create() {
         batch = new SpriteBatch();
@@ -56,11 +52,10 @@ public class GameDesktopLauncher implements ApplicationListener {
 
         CollisionChecker collisionChecker = world.getLevel();
 
-        MOVEMENT_KEYS.forEach((key, direction) -> {
-            inputController.bind(key, new MoveCommand(player, direction, collisionChecker));
-        });
-
-        
+        MOVEMENT_KEYS.forEach(
+                (key, direction) -> {
+                    inputController.bind(key, new MoveCommand(player, direction, collisionChecker));
+                });
     }
 
     @Override
