@@ -30,8 +30,4 @@ public class Level implements CollisionChecker {
     private boolean isOutOfBounds(GridPoint2 point) {
         return point.x < 0 || point.y < 0 || point.x >= width || point.y >= height;
     }
-
-    public List<Obstacle> getObstacles() {
-        return obstacles;
-    }
 }

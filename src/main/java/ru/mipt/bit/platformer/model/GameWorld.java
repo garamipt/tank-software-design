@@ -1,23 +1,18 @@
 package ru.mipt.bit.platformer.model;
 
-public class GameWorld {
-    private final Level level;
-    private final Tank player;
+import java.util.List;
 
-    public GameWorld(Level level, Tank player) {
-        this.level = level;
-        this.player = player;
+public class GameWorld implements Updatable {
+    private final List<Updatable> objects;
+
+    public GameWorld(List<Updatable> objects) {
+        this.objects = List.copyOf(objects);
     }
 
+    @Override
     public void update(float deltaTime) {
-        player.update(deltaTime);
-    }
-
-    public Level getLevel() {
-        return level;
-    }
-
-    public Tank getPlayer() {
-        return player;
+        for (Updatable object : objects) {
+            object.update(deltaTime);
+        }
     }
 }
