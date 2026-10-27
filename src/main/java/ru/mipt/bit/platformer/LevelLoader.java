@@ -15,6 +15,7 @@ import ru.mipt.bit.platformer.control.GdxKeyboardState;
 import ru.mipt.bit.platformer.control.InputController;
 import ru.mipt.bit.platformer.control.MoveCommand;
 import ru.mipt.bit.platformer.graphics.GameGraphics;
+import ru.mipt.bit.platformer.level.LevelLayoutSource;
 import ru.mipt.bit.platformer.model.CollisionChecker;
 import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.GameWorld;
@@ -27,6 +28,7 @@ public class LevelLoader {
     private static final String TANK_TEXTURE_PATH = "images/tank_blue.png";
     private static final String TREE_TEXTURE_PATH = "images/greenTree.png";
     private static final float PLAYER_SECONDS_PER_CELL = 0.4f;
+    private static final Direction PLAYER_INITIAL_DIRECTION = Direction.UP;
     private static final Color BACKGROUND_COLOR = new Color(0f, 0f, 0.2f, 1f);
     private static final Interpolation MOVEMENT_INTERPOLATION = Interpolation.smooth;
     private static final Map<Integer, Direction> MOVEMENT_KEYS = new LinkedHashMap<>();
@@ -43,22 +45,24 @@ public class LevelLoader {
     }
 
     private final String mapPath;
-    private final LevelLayout layout;
+    private final LevelLayoutSource layoutSource;
 
-    public LevelLoader(String mapPath, LevelLayout layout) {
+    public LevelLoader(String mapPath, LevelLayoutSource layoutSource) {
         this.mapPath = mapPath;
-        this.layout = layout;
+        this.layoutSource = layoutSource;
     }
 
     public GameSession load() {
         TiledMap tiledMap = new TmxMapLoader().load(mapPath);
         TiledMapTileLayer groundLayer = getSingleLayer(tiledMap);
+        LevelLayout layout =
+                layoutSource.createLayout(groundLayer.getWidth(), groundLayer.getHeight());
 
         List<Obstacle> obstacles = layout.obstaclePositions().stream().map(Obstacle::new).toList();
         Level level = new Level(groundLayer.getWidth(), groundLayer.getHeight(), obstacles);
         Tank player =
                 new Tank(
-                        layout.playerPosition(), layout.playerDirection(), PLAYER_SECONDS_PER_CELL);
+                        layout.playerPosition(), PLAYER_INITIAL_DIRECTION, PLAYER_SECONDS_PER_CELL);
         GameWorld world = new GameWorld(List.of(player));
 
         return new GameSession(
