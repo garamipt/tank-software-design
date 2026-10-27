@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InputController {
+public class InputController implements CommandSource {
     private final KeyboardState keyboard;
     private final Map<Integer, Command> bindings = new LinkedHashMap<>();
 
@@ -17,6 +17,7 @@ public class InputController {
         bindings.put(keycode, command);
     }
 
+    @Override
     public List<Command> getActiveCommands() {
         List<Command> active = new ArrayList<>();
         for (Map.Entry<Integer, Command> binding : bindings.entrySet()) {
