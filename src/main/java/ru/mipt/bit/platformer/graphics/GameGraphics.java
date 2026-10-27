@@ -15,7 +15,9 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Interpolation;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import ru.mipt.bit.platformer.model.GameObject;
 
 public class GameGraphics implements Renderer {
@@ -25,7 +27,7 @@ public class GameGraphics implements Renderer {
     private final TileMovement tileMovement;
     private final Color backgroundColor;
 
-    private final List<Texture> textures = new ArrayList<>();
+    private final Map<String, Texture> textures = new HashMap<>();
     private final List<GameObjectGraphics> objects = new ArrayList<>();
 
     public GameGraphics(
@@ -40,9 +42,12 @@ public class GameGraphics implements Renderer {
     }
 
     public void add(GameObject object, String texturePath) {
-        Texture texture = new Texture(texturePath);
-        textures.add(texture);
-        objects.add(new GameObjectGraphics(object, new TextureRegion(texture), tileMovement));
+        add(object, texturePath, Color.WHITE);
+    }
+
+    public void add(GameObject object, String texturePath, Color tint) {
+        Texture texture = textures.computeIfAbsent(texturePath, Texture::new);
+        objects.add(new GameObjectGraphics(object, new TextureRegion(texture), tint, tileMovement));
     }
 
     @Override
@@ -62,7 +67,7 @@ public class GameGraphics implements Renderer {
 
     @Override
     public void dispose() {
-        for (Texture texture : textures) {
+        for (Texture texture : textures.values()) {
             texture.dispose();
         }
         tiledMap.dispose();

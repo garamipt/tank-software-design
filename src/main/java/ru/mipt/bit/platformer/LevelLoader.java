@@ -8,12 +8,18 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Interpolation;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import ru.mipt.bit.platformer.control.AiController;
+import ru.mipt.bit.platformer.control.CommandSource;
+import ru.mipt.bit.platformer.control.CompositeCommandSource;
 import ru.mipt.bit.platformer.control.GdxKeyboardState;
 import ru.mipt.bit.platformer.control.InputController;
 import ru.mipt.bit.platformer.control.MoveCommand;
+import ru.mipt.bit.platformer.control.MovementStrategy;
 import ru.mipt.bit.platformer.graphics.GameGraphics;
 import ru.mipt.bit.platformer.level.LevelLayoutSource;
 import ru.mipt.bit.platformer.model.CollisionChecker;
@@ -22,13 +28,18 @@ import ru.mipt.bit.platformer.model.GameWorld;
 import ru.mipt.bit.platformer.model.Level;
 import ru.mipt.bit.platformer.model.LevelLayout;
 import ru.mipt.bit.platformer.model.Obstacle;
+import ru.mipt.bit.platformer.model.Occupant;
 import ru.mipt.bit.platformer.model.Tank;
+import ru.mipt.bit.platformer.model.Updatable;
 
 public class LevelLoader {
     private static final String TANK_TEXTURE_PATH = "images/tank_blue.png";
     private static final String TREE_TEXTURE_PATH = "images/greenTree.png";
     private static final float PLAYER_SECONDS_PER_CELL = 0.4f;
     private static final Direction PLAYER_INITIAL_DIRECTION = Direction.UP;
+    private static final float BOT_SECONDS_PER_CELL = 0.6f;
+    private static final Direction BOT_INITIAL_DIRECTION = Direction.DOWN;
+    private static final Color BOT_TINT = new Color(1f, 0.55f, 0.55f, 1f);
     private static final Color BACKGROUND_COLOR = new Color(0f, 0f, 0.2f, 1f);
     private static final Interpolation MOVEMENT_INTERPOLATION = Interpolation.smooth;
     private static final Map<Integer, Direction> MOVEMENT_KEYS = new LinkedHashMap<>();
@@ -46,10 +57,15 @@ public class LevelLoader {
 
     private final String mapPath;
     private final LevelLayoutSource layoutSource;
+    private final Supplier<MovementStrategy> botStrategyFactory;
 
-    public LevelLoader(String mapPath, LevelLayoutSource layoutSource) {
+    public LevelLoader(
+            String mapPath,
+            LevelLayoutSource layoutSource,
+            Supplier<MovementStrategy> botStrategyFactory) {
         this.mapPath = mapPath;
         this.layoutSource = layoutSource;
+        this.botStrategyFactory = botStrategyFactory;
     }
 
     public GameSession load() {
@@ -59,16 +75,42 @@ public class LevelLoader {
                 layoutSource.createLayout(groundLayer.getWidth(), groundLayer.getHeight());
 
         List<Obstacle> obstacles = layout.obstaclePositions().stream().map(Obstacle::new).toList();
-        Level level = new Level(groundLayer.getWidth(), groundLayer.getHeight(), obstacles);
         Tank player =
                 new Tank(
                         layout.playerPosition(), PLAYER_INITIAL_DIRECTION, PLAYER_SECONDS_PER_CELL);
-        GameWorld world = new GameWorld(List.of(player));
+        List<Tank> bots =
+                layout.botPositions().stream()
+                        .map(
+                                position ->
+                                        new Tank(
+                                                position,
+                                                BOT_INITIAL_DIRECTION,
+                                                BOT_SECONDS_PER_CELL))
+                        .toList();
+
+        List<Occupant> occupants = new ArrayList<>(obstacles);
+        occupants.add(player);
+        occupants.addAll(bots);
+        Level level = new Level(groundLayer.getWidth(), groundLayer.getHeight(), occupants);
+
+        List<Updatable> tanks = new ArrayList<>();
+        tanks.add(player);
+        tanks.addAll(bots);
 
         return new GameSession(
-                createInputController(player, level),
-                world,
-                createGraphics(tiledMap, player, obstacles));
+                createCommandSource(player, bots, level),
+                new GameWorld(tanks),
+                createGraphics(tiledMap, player, bots, obstacles));
+    }
+
+    private CommandSource createCommandSource(
+            Tank player, List<Tank> bots, CollisionChecker collisionChecker) {
+        List<CommandSource> sources = new ArrayList<>();
+        sources.add(createInputController(player, collisionChecker));
+        for (Tank bot : bots) {
+            sources.add(new AiController(bot, botStrategyFactory.get(), collisionChecker));
+        }
+        return new CompositeCommandSource(sources);
     }
 
     private InputController createInputController(Tank player, CollisionChecker collisionChecker) {
@@ -80,10 +122,14 @@ public class LevelLoader {
         return inputController;
     }
 
-    private GameGraphics createGraphics(TiledMap tiledMap, Tank player, List<Obstacle> obstacles) {
+    private GameGraphics createGraphics(
+            TiledMap tiledMap, Tank player, List<Tank> bots, List<Obstacle> obstacles) {
         GameGraphics graphics =
                 new GameGraphics(tiledMap, BACKGROUND_COLOR, MOVEMENT_INTERPOLATION);
         graphics.add(player, TANK_TEXTURE_PATH);
+        for (Tank bot : bots) {
+            graphics.add(bot, TANK_TEXTURE_PATH, BOT_TINT);
+        }
         for (Obstacle obstacle : obstacles) {
             graphics.add(obstacle, TREE_TEXTURE_PATH);
         }

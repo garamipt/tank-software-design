@@ -2,6 +2,7 @@ package ru.mipt.bit.platformer.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.math.GridPoint2;
 import java.util.List;
@@ -38,5 +39,45 @@ class LevelLayoutTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> new LevelLayout(new GridPoint2(1, 1), List.of(new GridPoint2(1, 1))));
+    }
+
+    @Test
+    void shouldHaveNoBotsByDefault() {
+        LevelLayout layout = new LevelLayout(new GridPoint2(1, 1), List.of());
+
+        assertTrue(layout.botPositions().isEmpty());
+    }
+
+    @Test
+    void shouldRejectBotOnPlayer() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        new LevelLayout(
+                                new GridPoint2(1, 1), List.of(), List.of(new GridPoint2(1, 1))));
+    }
+
+    @Test
+    void shouldRejectBotOnObstacle() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        new LevelLayout(
+                                new GridPoint2(1, 1),
+                                List.of(new GridPoint2(2, 2)),
+                                List.of(new GridPoint2(2, 2))));
+    }
+
+    @Test
+    void shouldListEveryOccupiedPosition() {
+        LevelLayout layout =
+                new LevelLayout(
+                        new GridPoint2(1, 1),
+                        List.of(new GridPoint2(2, 2)),
+                        List.of(new GridPoint2(3, 3)));
+
+        assertEquals(
+                List.of(new GridPoint2(1, 1), new GridPoint2(2, 2), new GridPoint2(3, 3)),
+                layout.occupiedPositions());
     }
 }

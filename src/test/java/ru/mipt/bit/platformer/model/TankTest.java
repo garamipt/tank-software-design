@@ -1,6 +1,8 @@
 package ru.mipt.bit.platformer.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.jupiter.api.Test;
@@ -65,5 +67,34 @@ public class TankTest {
         tank.update(0.5f);
 
         assertEquals(new GridPoint2(2, 1), tank.getCoordinates());
+    }
+
+    @Test
+    public void shouldOccupyOnlyOwnCellWhenStanding() {
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
+
+        assertTrue(tank.occupies(new GridPoint2(1, 1)));
+        assertFalse(tank.occupies(new GridPoint2(2, 1)));
+    }
+
+    @Test
+    public void shouldOccupyBothCellsWhileMoving() {
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
+
+        tank.move(Direction.RIGHT, point -> true);
+
+        assertTrue(tank.occupies(new GridPoint2(1, 1)));
+        assertTrue(tank.occupies(new GridPoint2(2, 1)));
+    }
+
+    @Test
+    public void shouldReleaseOriginCellAfterArrival() {
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
+
+        tank.move(Direction.RIGHT, point -> true);
+        tank.update(1f);
+
+        assertFalse(tank.occupies(new GridPoint2(1, 1)));
+        assertTrue(tank.occupies(new GridPoint2(2, 1)));
     }
 }

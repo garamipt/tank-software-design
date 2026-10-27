@@ -6,8 +6,10 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import java.util.Random;
 import java.util.function.Supplier;
+import ru.mipt.bit.platformer.control.RandomMovementStrategy;
 import ru.mipt.bit.platformer.level.FileLevelLayoutSource;
 import ru.mipt.bit.platformer.level.LevelLayoutSource;
+import ru.mipt.bit.platformer.level.RandomBotsLayoutSource;
 import ru.mipt.bit.platformer.level.RandomLevelLayoutSource;
 
 public class GameDesktopLauncher implements ApplicationListener {
@@ -15,6 +17,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     private static final String DEFAULT_LEVEL_PATH = "level.txt";
     private static final String RANDOM_LEVEL_ARGUMENT = "random";
     private static final int RANDOM_OBSTACLE_COUNT = 10;
+    private static final int BOT_COUNT = 4;
 
     private final Supplier<GameSession> sessionFactory;
     private GameSession session;
@@ -55,7 +58,11 @@ public class GameDesktopLauncher implements ApplicationListener {
     }
 
     public static void main(String[] args) {
-        LevelLoader levelLoader = new LevelLoader(MAP_PATH, createLayoutSource(args));
+        Random random = new Random();
+        LevelLayoutSource layoutSource =
+                new RandomBotsLayoutSource(createLayoutSource(args, random), BOT_COUNT, random);
+        LevelLoader levelLoader =
+                new LevelLoader(MAP_PATH, layoutSource, () -> new RandomMovementStrategy(random));
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         // level width: 10 tiles x 128px, height: 8 tiles x 128px
@@ -63,12 +70,12 @@ public class GameDesktopLauncher implements ApplicationListener {
         new Lwjgl3Application(new GameDesktopLauncher(levelLoader::load), config);
     }
 
-    private static LevelLayoutSource createLayoutSource(String[] args) {
+    private static LevelLayoutSource createLayoutSource(String[] args, Random random) {
         if (args.length == 0) {
             return new FileLevelLayoutSource(DEFAULT_LEVEL_PATH);
         }
         if (RANDOM_LEVEL_ARGUMENT.equals(args[0])) {
-            return new RandomLevelLayoutSource(RANDOM_OBSTACLE_COUNT, new Random());
+            return new RandomLevelLayoutSource(RANDOM_OBSTACLE_COUNT, random);
         }
         return new FileLevelLayoutSource(args[0]);
     }

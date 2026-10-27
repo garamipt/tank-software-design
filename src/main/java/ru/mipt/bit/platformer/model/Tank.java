@@ -4,7 +4,7 @@ import static com.badlogic.gdx.math.MathUtils.clamp;
 
 import com.badlogic.gdx.math.GridPoint2;
 
-public class Tank implements GameObject, Updatable {
+public class Tank implements GameObject, Updatable, Occupant {
     private static final float MOVEMENT_STARTED = 0f;
     private static final float MOVEMENT_COMPLETED = 1f;
 
@@ -44,6 +44,11 @@ public class Tank implements GameObject, Updatable {
         if (!isMoving()) {
             coordinates.set(destination);
         }
+    }
+
+    @Override
+    public boolean occupies(GridPoint2 point) {
+        return coordinates.equals(point) || destination.equals(point);
     }
 
     private boolean isMoving() {

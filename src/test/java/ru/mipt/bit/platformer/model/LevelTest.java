@@ -32,4 +32,16 @@ class LevelTest {
 
         assertFalse(level.isFree(new GridPoint2(x, y)));
     }
+
+    @Test
+    void shouldTreatCellsOfMovingTankAsOccupied() {
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, 0.4f);
+        Level level = new Level(10, 8, List.of(tank));
+
+        tank.move(Direction.RIGHT, point -> true);
+
+        assertFalse(level.isFree(new GridPoint2(1, 1)));
+        assertFalse(level.isFree(new GridPoint2(2, 1)));
+        assertTrue(level.isFree(new GridPoint2(3, 1)));
+    }
 }

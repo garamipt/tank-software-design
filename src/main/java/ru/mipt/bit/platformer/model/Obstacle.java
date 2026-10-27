@@ -2,7 +2,7 @@ package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
 
-public class Obstacle implements GameObject {
+public class Obstacle implements GameObject, Occupant {
     private final GridPoint2 coordinates;
 
     public Obstacle(GridPoint2 coordinates) {
@@ -19,6 +19,7 @@ public class Obstacle implements GameObject {
         return 0f;
     }
 
+    @Override
     public boolean occupies(GridPoint2 point) {
         return coordinates.equals(point);
     }

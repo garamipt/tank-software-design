@@ -6,12 +6,12 @@ import java.util.List;
 public class Level implements CollisionChecker {
     private final int width;
     private final int height;
-    private final List<Obstacle> obstacles;
+    private final List<Occupant> occupants;
 
-    public Level(int width, int height, List<Obstacle> obstacles) {
+    public Level(int width, int height, List<Occupant> occupants) {
         this.width = width;
         this.height = height;
-        this.obstacles = List.copyOf(obstacles);
+        this.occupants = List.copyOf(occupants);
     }
 
     @Override
@@ -19,8 +19,8 @@ public class Level implements CollisionChecker {
         if (isOutOfBounds(point)) {
             return false;
         }
-        for (Obstacle obstacle : obstacles) {
-            if (obstacle.occupies(point)) {
+        for (Occupant occupant : occupants) {
+            if (occupant.occupies(point)) {
                 return false;
             }
         }
