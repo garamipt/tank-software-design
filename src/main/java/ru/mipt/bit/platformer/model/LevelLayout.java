@@ -3,12 +3,15 @@ package ru.mipt.bit.platformer.model;
 import com.badlogic.gdx.math.GridPoint2;
 import java.util.List;
 
-public record LevelLayout(
-        GridPoint2 playerPosition, Direction playerDirection, List<GridPoint2> obstaclePositions) {
+public record LevelLayout(GridPoint2 playerPosition, List<GridPoint2> obstaclePositions) {
 
     public LevelLayout {
         playerPosition = new GridPoint2(playerPosition);
         obstaclePositions = copyOf(obstaclePositions);
+        if (obstaclePositions.contains(playerPosition)) {
+            throw new IllegalArgumentException(
+                    "Player position " + playerPosition + " is occupied by an obstacle");
+        }
     }
 
     @Override
