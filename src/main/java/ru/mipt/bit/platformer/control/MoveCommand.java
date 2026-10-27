@@ -15,9 +15,8 @@ public class MoveCommand implements Command {
         this.collisionChecker = collisionChecker;
     }
 
-    @Override 
+    @Override
     public void execute() {
         tank.move(direction, collisionChecker);
     }
-
 }

@@ -1,15 +1,16 @@
 package ru.mipt.bit.platformer.model;
 
-import org.junit.jupiter.api.Test;
-import com.badlogic.gdx.math.GridPoint2;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.badlogic.gdx.math.GridPoint2;
+import org.junit.jupiter.api.Test;
+
 public class TankTest {
+    private static final float SECONDS_PER_CELL = 0.4f;
 
     @Test
     public void shouldStartMovingToFreeCell() {
-        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT);
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
 
         tank.move(Direction.RIGHT, point -> true);
         assertEquals(new GridPoint2(2, 1), tank.getDestination());
@@ -20,7 +21,7 @@ public class TankTest {
 
     @Test
     public void shouldNotMoveIntoObstacle() {
-        Tank tank = new Tank(new GridPoint2(1, 2), Direction.RIGHT);
+        Tank tank = new Tank(new GridPoint2(1, 2), Direction.RIGHT, SECONDS_PER_CELL);
 
         tank.move(Direction.UP, point -> false);
         assertEquals(new GridPoint2(1, 2), tank.getCoordinates());
@@ -29,9 +30,9 @@ public class TankTest {
         assertEquals(Direction.UP, tank.getDirection());
     }
 
-    @Test 
+    @Test
     public void shouldIgnoreMoveCommandWhileMoving() {
-        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT);
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
 
         tank.move(Direction.RIGHT, point -> true);
         tank.move(Direction.UP, point -> true);
@@ -42,12 +43,27 @@ public class TankTest {
 
     @Test
     public void shouldArriveAtDestinationAfterUpdate() {
-        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT);
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
 
         tank.move(Direction.RIGHT, point -> true);
         tank.update(1f);
         assertEquals(new GridPoint2(2, 1), tank.getCoordinates());
         assertEquals(new GridPoint2(2, 1), tank.getDestination());
         assertEquals(1f, tank.getMovementProgress(), 1e-6f);
+    }
+
+    @Test
+    public void shouldCrossCellInConfiguredTime() {
+        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, 1f);
+
+        tank.move(Direction.RIGHT, point -> true);
+        tank.update(0.5f);
+
+        assertEquals(new GridPoint2(1, 1), tank.getCoordinates());
+        assertEquals(0.5f, tank.getMovementProgress(), 1e-6f);
+
+        tank.update(0.5f);
+
+        assertEquals(new GridPoint2(2, 1), tank.getCoordinates());
     }
 }

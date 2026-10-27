@@ -1,11 +1,11 @@
 package ru.mipt.bit.platformer.model;
 
-import org.junit.jupiter.api.Test;
-import com.badlogic.gdx.math.GridPoint2;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.badlogic.gdx.math.GridPoint2;
+import org.junit.jupiter.api.Test;
 
 public class ObstacleTest {
 
@@ -32,7 +32,7 @@ public class ObstacleTest {
         assertFalse(obstacle.occupies(new GridPoint2(3, 4)));
     }
 
-    @Test 
+    @Test
     public void shouldBeMotionless() {
         Obstacle obstacle = new Obstacle(new GridPoint2(1, 3));
 

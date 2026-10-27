@@ -1,16 +1,14 @@
 package ru.mipt.bit.platformer.control;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import com.badlogic.gdx.Input.Keys;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.badlogic.gdx.Input.Keys;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
 public class InputControllerTest {
-    @Test 
+    @Test
     void shouldReturnCommandBoundToPressedKey() {
         Command command = () -> {};
         InputController inputController = new InputController(keycode -> keycode == Keys.UP);
@@ -44,5 +42,4 @@ public class InputControllerTest {
 
         assertEquals(List.of(first, second), controller.getActiveCommands());
     }
-
 }

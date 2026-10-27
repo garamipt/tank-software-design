@@ -1,6 +1,6 @@
 package ru.mipt.bit.platformer.control;
 
-@FunctionalInterface 
+@FunctionalInterface
 public interface KeyboardState {
     boolean isPressed(int keycode);
 }
