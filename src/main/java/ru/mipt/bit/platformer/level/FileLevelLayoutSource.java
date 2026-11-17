@@ -9,6 +9,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import ru.mipt.bit.platformer.model.LevelLayout;
 
+/**
+ * Adapter (driven, infrastructure): {@link LevelLayoutSource} over a text file on the classpath.
+ */
 public class FileLevelLayoutSource implements LevelLayoutSource {
     private final String resourcePath;
     private final LevelLayoutParser parser = new LevelLayoutParser();

@@ -2,6 +2,7 @@ package ru.mipt.bit.platformer.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.mipt.bit.platformer.model.TestTanks.tank;
 
@@ -210,5 +211,70 @@ class TankTest {
         tank.receiveHit(150);
 
         assertEquals(0f, tank.getHealthFraction(), 1e-6f);
+    }
+
+    @Test
+    void shouldStartInLightDamageState() {
+        assertInstanceOf(LightDamageState.class, tank(1, 1, Direction.RIGHT).getState());
+    }
+
+    @Test
+    void shouldStayInLightDamageStateAboveSeventyPercent() {
+        Tank tank = tank(1, 1, Direction.RIGHT);
+
+        tank.receiveHit(25);
+
+        assertInstanceOf(LightDamageState.class, tank.getState());
+    }
+
+    @Test
+    void shouldMoveTwiceSlowerWhenMediumDamaged() {
+        Tank tank = tank(1, 1, Direction.RIGHT);
+        tank.receiveHit(50);
+
+        tank.move(Direction.RIGHT, point -> true);
+        tank.update(TestTanks.SETTINGS.secondsPerCell());
+
+        assertInstanceOf(MediumDamageState.class, tank.getState());
+        assertEquals(0.5f, tank.getMovementProgress(), 1e-5f);
+        assertEquals(new GridPoint2(1, 1), tank.getCoordinates());
+    }
+
+    @Test
+    void shouldMoveThreeTimesSlowerWhenHeavilyDamaged() {
+        Tank tank = tank(1, 1, Direction.RIGHT);
+        tank.receiveHit(90);
+
+        tank.move(Direction.RIGHT, point -> true);
+        tank.update(TestTanks.SETTINGS.secondsPerCell() * 1.5f);
+
+        assertInstanceOf(HeavyDamageState.class, tank.getState());
+        assertEquals(0.5f, tank.getMovementProgress(), 1e-5f);
+    }
+
+    @Test
+    void shouldNotShootWhenHeavilyDamaged() {
+        GameWorld world = TestTanks.world();
+        RecordingListener listener = new RecordingListener();
+        world.addListener(listener);
+        Tank tank = tank(1, 1, Direction.RIGHT);
+        tank.receiveHit(90);
+
+        tank.shoot(world);
+
+        assertTrue(listener.addedBullets().isEmpty());
+    }
+
+    @Test
+    void shouldStillShootWhenMediumDamaged() {
+        GameWorld world = TestTanks.world();
+        RecordingListener listener = new RecordingListener();
+        world.addListener(listener);
+        Tank tank = tank(1, 1, Direction.RIGHT);
+        tank.receiveHit(50);
+
+        tank.shoot(world);
+
+        assertEquals(1, listener.addedBullets().size());
     }
 }

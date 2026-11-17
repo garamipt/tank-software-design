@@ -2,6 +2,7 @@ package ru.mipt.bit.platformer.control;
 
 import java.util.Random;
 
+/** Implements port {@link TankStrategy}: random moves with occasional shots. */
 public class RandomTankStrategy implements TankStrategy {
     private final MovementStrategy movementStrategy;
     private final double shootProbability;

@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Adapter (driving, application): turns {@link KeyboardState} into commands for {@link
+ * CommandSource}.
+ */
 public class InputController implements CommandSource {
     private final KeyboardState keyboard;
     private final Map<Integer, Command> bindings = new LinkedHashMap<>();

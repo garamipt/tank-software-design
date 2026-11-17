@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import ru.mipt.bit.platformer.model.LevelLayout;
 
+/** Implements port {@link LevelLayoutSource} in process: random obstacles and player position. */
 public class RandomLevelLayoutSource implements LevelLayoutSource {
     private final int obstacleCount;
     private final Random random;

@@ -7,6 +7,10 @@ import ru.mipt.bit.platformer.control.CommandSource;
 import ru.mipt.bit.platformer.graphics.Renderer;
 import ru.mipt.bit.platformer.model.Updatable;
 
+/**
+ * Application service: one game loop step over ports {@link CommandSource}, {@link Updatable} and
+ * {@link Renderer}.
+ */
 public class GameSession implements Disposable {
     private final CommandSource commandSource;
     private final Updatable world;

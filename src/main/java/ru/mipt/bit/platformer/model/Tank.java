@@ -9,12 +9,14 @@ public class Tank implements LevelObject, Damageable {
     private Direction direction;
     private int health;
     private float reloadRemaining;
+    private TankState state;
 
     public Tank(GridPoint2 initialCoordinates, Direction initialDirection, TankSettings settings) {
         this.movement = new GridMovement(initialCoordinates, settings.secondsPerCell());
         this.settings = settings;
         this.direction = initialDirection;
         this.health = settings.health();
+        this.state = DamageState.forHealthFraction(getHealthFraction());
     }
 
     public void move(Direction direction, CollisionChecker collisionChecker) {
@@ -29,7 +31,7 @@ public class Tank implements LevelObject, Damageable {
     }
 
     public void shoot(World world) {
-        if (isDestroyed() || isReloading()) {
+        if (isDestroyed() || !state.canShoot() || isReloading()) {
             return;
         }
         reloadRemaining = settings.reloadSeconds();
@@ -38,13 +40,14 @@ public class Tank implements LevelObject, Damageable {
 
     @Override
     public void update(float deltaTime) {
-        movement.update(deltaTime);
-        reloadRemaining = Math.max(0f, reloadRemaining - deltaTime);
+        movement.update(deltaTime * state.speedFactor());
+        reloadRemaining = Math.max(0f, reloadRemaining - deltaTime * state.fireRateFactor());
     }
 
     @Override
     public void receiveHit(int damage) {
         health -= damage;
+        state = state.onHealthChanged(getHealthFraction());
     }
 
     @Override
@@ -84,6 +87,10 @@ public class Tank implements LevelObject, Damageable {
     @Override
     public float getMovementProgress() {
         return movement.getProgress();
+    }
+
+    public TankState getState() {
+        return state;
     }
 
     public Direction getDirection() {

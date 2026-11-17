@@ -1,5 +1,6 @@
 package ru.mipt.bit.platformer.model;
 
+/** Domain interface: an object with health, read by the health bar graphics. */
 public interface Damageable {
     int getHealth();
 

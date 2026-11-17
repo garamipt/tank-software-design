@@ -13,6 +13,9 @@ import ru.mipt.bit.platformer.level.LevelLayoutSource;
 import ru.mipt.bit.platformer.level.RandomBotsLayoutSource;
 import ru.mipt.bit.platformer.level.RandomLevelLayoutSource;
 
+/**
+ * Adapter (driving, infrastructure): libGDX application lifecycle that drives {@link GameSession}.
+ */
 public class GameDesktopLauncher implements ApplicationListener {
     private static final String MAP_PATH = "level.tmx";
     private static final String DEFAULT_LEVEL_PATH = "level.txt";

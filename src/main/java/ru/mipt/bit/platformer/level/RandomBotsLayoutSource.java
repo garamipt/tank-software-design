@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 import ru.mipt.bit.platformer.model.LevelLayout;
 
+/** Implements port {@link LevelLayoutSource} in process: adds random bots to another source. */
 public class RandomBotsLayoutSource implements LevelLayoutSource {
     private final LevelLayoutSource levelSource;
     private final int botCount;
