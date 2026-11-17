@@ -2,7 +2,7 @@ package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
 
-public class Tank implements LevelObject {
+public class Tank implements LevelObject, Damageable {
     private final GridMovement movement;
     private final TankSettings settings;
 
@@ -33,8 +33,7 @@ public class Tank implements LevelObject {
             return;
         }
         reloadRemaining = settings.reloadSeconds();
-        GridPoint2 bulletPosition = direction.stepFrom(movement.getDestination());
-        world.add(new Bullet(bulletPosition, direction, settings.bullet(), world));
+        world.add(new Bullet(movement.getDestination(), direction, settings.bullet(), world));
     }
 
     @Override
@@ -62,8 +61,14 @@ public class Tank implements LevelObject {
         return reloadRemaining > 0f;
     }
 
+    @Override
     public int getHealth() {
         return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return settings.health();
     }
 
     @Override

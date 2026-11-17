@@ -69,6 +69,6 @@ class AiControllerTest {
         controller.getActiveCommands().forEach(Command::execute);
 
         assertEquals(1, listener.addedBullets().size());
-        assertEquals(new GridPoint2(1, 2), listener.addedBullets().get(0).getCoordinates());
+        assertEquals(new GridPoint2(1, 2), listener.addedBullets().get(0).getDestination());
     }
 }
