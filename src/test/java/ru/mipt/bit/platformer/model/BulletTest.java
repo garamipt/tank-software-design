@@ -45,7 +45,7 @@ class BulletTest {
     }
 
     @Test
-    void shouldDisappearWhenSpawnedOutsideLevel() {
+    void shouldDisappearWhenShotIntoLevelBorder() {
         Tank tank = tank(9, 1, Direction.RIGHT);
         world.add(tank);
 
@@ -114,6 +114,38 @@ class BulletTest {
         assertEquals(100 - TestTanks.BULLET.damage(), enemy.getHealth());
         assertEquals(100, shooter.getHealth());
         assertEquals(listener.addedBullets(), listener.removed);
+    }
+
+    @Test
+    void shouldStayVisibleInFlightBeforeHittingPointBlankEnemy() {
+        Tank shooter = tank(1, 1, Direction.RIGHT);
+        Tank enemy = tank(2, 1, Direction.LEFT);
+        world.add(shooter);
+        world.add(enemy);
+
+        shooter.shoot(world);
+        world.update(ONE_CELL / 2);
+
+        Bullet bullet = listener.addedBullets().get(0);
+        assertFalse(bullet.isDestroyed());
+        assertEquals(0.5f, bullet.getMovementProgress(), 1e-6f);
+        assertEquals(100, enemy.getHealth());
+    }
+
+    @Test
+    void shouldNotHitTargetThatLeftBeforeBulletArrived() {
+        Tank shooter = tank(1, 1, Direction.RIGHT);
+        Tank enemy = tank(3, 1, Direction.UP, TestTanks.withSecondsPerCell(ONE_CELL / 2));
+        world.add(shooter);
+        world.add(enemy);
+
+        shooter.shoot(world);
+        world.update(ONE_CELL);
+        enemy.move(Direction.UP, world);
+        world.update(ONE_CELL);
+
+        assertEquals(100, enemy.getHealth());
+        assertEquals(new GridPoint2(3, 2), enemy.getCoordinates());
     }
 
     @Test

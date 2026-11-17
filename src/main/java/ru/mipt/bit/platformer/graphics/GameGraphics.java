@@ -6,6 +6,7 @@ import static ru.mipt.bit.platformer.graphics.GdxGameUtils.getSingleLayer;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -17,6 +18,7 @@ import com.badlogic.gdx.math.Interpolation;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import ru.mipt.bit.platformer.model.Damageable;
 import ru.mipt.bit.platformer.model.GameObject;
 import ru.mipt.bit.platformer.model.LevelListener;
 import ru.mipt.bit.platformer.model.LevelObject;
@@ -28,20 +30,25 @@ public class GameGraphics implements Renderer, LevelListener {
     private final TileMovement tileMovement;
     private final Color backgroundColor;
     private final AppearanceResolver appearances;
+    private final HealthBarsVisibility healthBars;
+    private final Texture pixel;
 
     private final Map<String, Texture> textures = new HashMap<>();
-    private final Map<GameObject, GameObjectGraphics> objects = new LinkedHashMap<>();
+    private final Map<GameObject, ObjectGraphics> objects = new LinkedHashMap<>();
 
     public GameGraphics(
             TiledMap tiledMap,
             Color backgroundColor,
             Interpolation movementInterpolation,
-            AppearanceResolver appearances) {
+            AppearanceResolver appearances,
+            HealthBarsVisibility healthBars) {
         this.tiledMap = tiledMap;
         this.batch = new SpriteBatch();
         this.levelRenderer = createSingleLayerMapRenderer(tiledMap, batch);
         this.backgroundColor = new Color(backgroundColor);
         this.appearances = appearances;
+        this.healthBars = healthBars;
+        this.pixel = createWhitePixel();
 
         TiledMapTileLayer groundLayer = getSingleLayer(tiledMap);
         this.tileMovement = new TileMovement(groundLayer, movementInterpolation);
@@ -51,10 +58,15 @@ public class GameGraphics implements Renderer, LevelListener {
     public void onObjectAdded(LevelObject object) {
         Appearance appearance = appearances.appearanceOf(object);
         Texture texture = textures.computeIfAbsent(appearance.texturePath(), Texture::new);
-        objects.put(
-                object,
+        ObjectGraphics graphics =
                 new GameObjectGraphics(
-                        object, new TextureRegion(texture), appearance.tint(), tileMovement));
+                        object, new TextureRegion(texture), appearance.tint(), tileMovement);
+        if (object instanceof Damageable damageable) {
+            graphics =
+                    new HealthBarGraphics(
+                            graphics, damageable, healthBars, new TextureRegion(pixel));
+        }
+        objects.put(object, graphics);
     }
 
     @Override
@@ -71,7 +83,7 @@ public class GameGraphics implements Renderer, LevelListener {
         levelRenderer.render();
 
         batch.begin();
-        for (GameObjectGraphics object : objects.values()) {
+        for (ObjectGraphics object : objects.values()) {
             object.render(batch);
         }
         batch.end();
@@ -82,7 +94,17 @@ public class GameGraphics implements Renderer, LevelListener {
         for (Texture texture : textures.values()) {
             texture.dispose();
         }
+        pixel.dispose();
         tiledMap.dispose();
         batch.dispose();
+    }
+
+    private static Texture createWhitePixel() {
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
     }
 }

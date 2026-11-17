@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.model.GameObject;
 
-public class GameObjectGraphics {
+public class GameObjectGraphics implements ObjectGraphics {
     private final GameObject object;
     private final TextureRegion image;
     private final Color tint;
@@ -25,6 +25,7 @@ public class GameObjectGraphics {
         this.tileMovement = tileMovement;
     }
 
+    @Override
     public void render(Batch batch) {
         tileMovement.moveRectangleBetweenTileCenters(
                 screenArea,
@@ -34,5 +35,10 @@ public class GameObjectGraphics {
         batch.setColor(tint);
         drawTextureRegionUnscaled(batch, image, screenArea, object.getRotation());
         batch.setColor(Color.WHITE);
+    }
+
+    @Override
+    public Rectangle getScreenArea() {
+        return new Rectangle(screenArea);
     }
 }

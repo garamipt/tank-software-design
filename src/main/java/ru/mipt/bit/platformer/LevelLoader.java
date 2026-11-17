@@ -21,8 +21,10 @@ import ru.mipt.bit.platformer.control.InputController;
 import ru.mipt.bit.platformer.control.MoveCommand;
 import ru.mipt.bit.platformer.control.ShootCommand;
 import ru.mipt.bit.platformer.control.TankStrategy;
+import ru.mipt.bit.platformer.control.ToggleCommand;
 import ru.mipt.bit.platformer.graphics.Appearance;
 import ru.mipt.bit.platformer.graphics.GameGraphics;
+import ru.mipt.bit.platformer.graphics.HealthBarsVisibility;
 import ru.mipt.bit.platformer.level.LevelLayoutSource;
 import ru.mipt.bit.platformer.model.Bullet;
 import ru.mipt.bit.platformer.model.BulletSettings;
@@ -49,13 +51,15 @@ public class LevelLoader {
     private static final TankSettings PLAYER_SETTINGS =
             new TankSettings(0.4f, 100, 0.5f, BULLET_SETTINGS);
     private static final TankSettings BOT_SETTINGS =
-            new TankSettings(0.6f, 50, 1.5f, BULLET_SETTINGS);
+            new TankSettings(0.6f, 100, 1.5f, BULLET_SETTINGS);
     private static final Direction PLAYER_INITIAL_DIRECTION = Direction.UP;
     private static final Direction BOT_INITIAL_DIRECTION = Direction.DOWN;
 
     private static final Color BACKGROUND_COLOR = new Color(0f, 0f, 0.2f, 1f);
     private static final Interpolation MOVEMENT_INTERPOLATION = Interpolation.smooth;
     private static final int SHOOT_KEY = Keys.SPACE;
+    private static final int TOGGLE_HEALTH_BARS_KEY = Keys.L;
+    private static final boolean HEALTH_BARS_INITIALLY_VISIBLE = true;
     private static final Map<Integer, Direction> MOVEMENT_KEYS = new LinkedHashMap<>();
 
     static {
@@ -96,36 +100,42 @@ public class LevelLoader {
         List<Obstacle> obstacles = layout.obstaclePositions().stream().map(Obstacle::new).toList();
 
         GameWorld world = new GameWorld(new Level(groundLayer.getWidth(), groundLayer.getHeight()));
+        HealthBarsVisibility healthBars = new HealthBarsVisibility(HEALTH_BARS_INITIALLY_VISIBLE);
         GameGraphics graphics =
                 new GameGraphics(
                         tiledMap,
                         BACKGROUND_COLOR,
                         MOVEMENT_INTERPOLATION,
-                        object -> appearanceOf(object, player));
+                        object -> appearanceOf(object, player),
+                        healthBars);
         world.addListener(graphics);
 
         world.add(player);
         bots.forEach(world::add);
         obstacles.forEach(world::add);
 
-        return new GameSession(createCommandSource(player, bots, world), world, graphics);
+        return new GameSession(
+                createCommandSource(player, bots, world, healthBars), world, graphics);
     }
 
-    private CommandSource createCommandSource(Tank player, List<Tank> bots, GameWorld world) {
+    private CommandSource createCommandSource(
+            Tank player, List<Tank> bots, GameWorld world, HealthBarsVisibility healthBars) {
         List<CommandSource> sources = new ArrayList<>();
-        sources.add(createInputController(player, world));
+        sources.add(createInputController(player, world, healthBars));
         for (Tank bot : bots) {
             sources.add(new AiController(bot, botStrategyFactory.get(), world));
         }
         return new CompositeCommandSource(sources);
     }
 
-    private InputController createInputController(Tank player, GameWorld world) {
+    private InputController createInputController(
+            Tank player, GameWorld world, HealthBarsVisibility healthBars) {
         InputController inputController = new InputController(new GdxKeyboardState());
         MOVEMENT_KEYS.forEach(
                 (key, direction) ->
                         inputController.bind(key, new MoveCommand(player, direction, world)));
         inputController.bind(SHOOT_KEY, new ShootCommand(player, world));
+        inputController.bindOnPress(TOGGLE_HEALTH_BARS_KEY, new ToggleCommand(healthBars::toggle));
         return inputController;
     }
 

@@ -10,8 +10,10 @@ public class Bullet implements LevelObject {
     private final World world;
     private boolean destroyed;
 
-    public Bullet(GridPoint2 position, Direction direction, BulletSettings settings, World world) {
-        this.movement = new GridMovement(position, settings.secondsPerCell());
+    public Bullet(
+            GridPoint2 shooterPosition, Direction direction, BulletSettings settings, World world) {
+        this.movement = new GridMovement(shooterPosition, settings.secondsPerCell());
+        this.movement.startTowards(direction.stepFrom(shooterPosition));
         this.direction = direction;
         this.damage = settings.damage();
         this.world = world;
@@ -19,36 +21,25 @@ public class Bullet implements LevelObject {
 
     @Override
     public void update(float deltaTime) {
-        if (collides()) {
+        movement.update(deltaTime);
+        if (movement.isMoving()) {
             return;
         }
-        if (!movement.isMoving()) {
-            movement.startTowards(direction.stepFrom(movement.getDestination()));
-            if (collides()) {
-                return;
-            }
+        GridPoint2 reachedCell = movement.getCoordinates();
+        if (collidesAt(reachedCell)) {
+            destroyed = true;
+            return;
         }
-        movement.update(deltaTime);
+        movement.startTowards(direction.stepFrom(reachedCell));
     }
 
-    private boolean collides() {
-        if (!world.contains(movement.getCoordinates())
-                || !world.contains(movement.getDestination())) {
-            destroyed = true;
+    private boolean collidesAt(GridPoint2 cell) {
+        if (!world.contains(cell)) {
             return true;
         }
-        Optional<LevelObject> target = findTarget();
-        if (target.isEmpty()) {
-            return false;
-        }
-        target.get().receiveHit(damage);
-        destroyed = true;
-        return true;
-    }
-
-    private Optional<LevelObject> findTarget() {
-        return firstOtherObjectAt(movement.getCoordinates())
-                .or(() -> firstOtherObjectAt(movement.getDestination()));
+        Optional<LevelObject> target = firstOtherObjectAt(cell);
+        target.ifPresent(object -> object.receiveHit(damage));
+        return target.isPresent();
     }
 
     private Optional<LevelObject> firstOtherObjectAt(GridPoint2 point) {

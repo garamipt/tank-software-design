@@ -94,7 +94,7 @@ class TankTest {
     }
 
     @Test
-    void shouldRegisterBulletInNextCellInFrontOfTank() {
+    void shouldLaunchBulletFromTankTowardsNextCell() {
         GameWorld world = TestTanks.world();
         RecordingListener listener = new RecordingListener();
         world.addListener(listener);
@@ -104,7 +104,8 @@ class TankTest {
 
         assertEquals(1, listener.addedBullets().size());
         Bullet bullet = listener.addedBullets().get(0);
-        assertEquals(new GridPoint2(2, 1), bullet.getCoordinates());
+        assertEquals(new GridPoint2(1, 1), bullet.getCoordinates());
+        assertEquals(new GridPoint2(2, 1), bullet.getDestination());
         assertEquals(Direction.RIGHT.getRotation(), bullet.getRotation(), 1e-6f);
     }
 
@@ -118,7 +119,7 @@ class TankTest {
         tank.move(Direction.RIGHT, world);
         tank.shoot(world);
 
-        assertEquals(new GridPoint2(3, 1), listener.addedBullets().get(0).getCoordinates());
+        assertEquals(new GridPoint2(3, 1), listener.addedBullets().get(0).getDestination());
     }
 
     @Test
@@ -181,5 +182,33 @@ class TankTest {
         assertEquals(new GridPoint2(1, 1), tank.getDestination());
         assertEquals(Direction.RIGHT, tank.getDirection());
         assertTrue(listener.addedBullets().isEmpty());
+    }
+
+    @Test
+    void shouldStartWithFullHealth() {
+        Tank tank = tank(1, 1, Direction.RIGHT);
+
+        assertEquals(TestTanks.SETTINGS.health(), tank.getMaxHealth());
+        assertEquals(tank.getMaxHealth(), tank.getHealth());
+        assertEquals(1f, tank.getHealthFraction(), 1e-6f);
+    }
+
+    @Test
+    void shouldReportRemainingHealthFraction() {
+        Tank tank = tank(1, 1, Direction.RIGHT);
+
+        tank.receiveHit(25);
+
+        assertEquals(0.75f, tank.getHealthFraction(), 1e-6f);
+        assertEquals(100, tank.getMaxHealth());
+    }
+
+    @Test
+    void shouldNotReportNegativeHealthFraction() {
+        Tank tank = tank(1, 1, Direction.RIGHT);
+
+        tank.receiveHit(150);
+
+        assertEquals(0f, tank.getHealthFraction(), 1e-6f);
     }
 }
