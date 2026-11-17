@@ -37,6 +37,9 @@ import ru.mipt.bit.platformer.model.Obstacle;
 import ru.mipt.bit.platformer.model.Tank;
 import ru.mipt.bit.platformer.model.TankSettings;
 
+/**
+ * Composition root (infrastructure): plugs adapters into ports and builds a {@link GameSession}.
+ */
 public class LevelLoader {
     private static final Appearance PLAYER_APPEARANCE =
             new Appearance("images/tank_blue.png", Color.WHITE);
@@ -47,7 +50,7 @@ public class LevelLoader {
     private static final Appearance BULLET_APPEARANCE =
             new Appearance("images/bullet.png", Color.WHITE);
 
-    private static final BulletSettings BULLET_SETTINGS = new BulletSettings(25, 0.08f);
+    private static final BulletSettings BULLET_SETTINGS = new BulletSettings(30, 0.08f);
     private static final TankSettings PLAYER_SETTINGS =
             new TankSettings(0.4f, 100, 0.5f, BULLET_SETTINGS);
     private static final TankSettings BOT_SETTINGS =

@@ -5,6 +5,10 @@ import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.Tank;
 import ru.mipt.bit.platformer.model.World;
 
+/**
+ * Adapter (driving, application): turns {@link TankStrategy} decisions into commands for {@link
+ * CommandSource}.
+ */
 public class AiController implements CommandSource {
     private final Tank tank;
     private final TankStrategy strategy;

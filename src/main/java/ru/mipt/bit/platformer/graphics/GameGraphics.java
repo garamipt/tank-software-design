@@ -23,6 +23,10 @@ import ru.mipt.bit.platformer.model.GameObject;
 import ru.mipt.bit.platformer.model.LevelListener;
 import ru.mipt.bit.platformer.model.LevelObject;
 
+/**
+ * Adapter (driven, infrastructure): {@link Renderer} and {@link
+ * ru.mipt.bit.platformer.model.LevelListener} over libGDX rendering.
+ */
 public class GameGraphics implements Renderer, LevelListener {
     private final TiledMap tiledMap;
     private final Batch batch;

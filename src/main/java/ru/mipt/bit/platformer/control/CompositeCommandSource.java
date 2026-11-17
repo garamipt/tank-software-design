@@ -3,6 +3,7 @@ package ru.mipt.bit.platformer.control;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Implements port {@link CommandSource}: merges several command sources into one. */
 public class CompositeCommandSource implements CommandSource {
     private final List<CommandSource> sources;
 

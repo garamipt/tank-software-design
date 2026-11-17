@@ -2,6 +2,10 @@ package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
 
+/**
+ * Domain interface: read-only view of an object's position and rotation that the graphics adapter
+ * draws.
+ */
 public interface GameObject {
 
     GridPoint2 getCoordinates();

@@ -3,6 +3,7 @@ package ru.mipt.bit.platformer.control;
 import java.util.Random;
 import ru.mipt.bit.platformer.model.Direction;
 
+/** Implements port {@link MovementStrategy}: a random direction every time. */
 public class RandomMovementStrategy implements MovementStrategy {
     private static final Direction[] DIRECTIONS = Direction.values();
 
