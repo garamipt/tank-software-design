@@ -1,34 +1,37 @@
 package ru.mipt.bit.platformer.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static ru.mipt.bit.platformer.model.TestTanks.tank;
 
 import com.badlogic.gdx.math.GridPoint2;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class TankCollisionTest {
-    private static final float SECONDS_PER_CELL = 0.4f;
 
     @Test
     void shouldNotEnterCellAnotherTankIsLeaving() {
-        Tank leaving = new Tank(new GridPoint2(2, 1), Direction.RIGHT, SECONDS_PER_CELL);
-        Tank follower = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
-        Level level = new Level(10, 8, List.of(leaving, follower));
+        GameWorld world = TestTanks.world();
+        Tank leaving = tank(2, 1, Direction.RIGHT);
+        Tank follower = tank(1, 1, Direction.RIGHT);
+        world.add(leaving);
+        world.add(follower);
 
-        leaving.move(Direction.RIGHT, level);
-        follower.move(Direction.RIGHT, level);
+        leaving.move(Direction.RIGHT, world);
+        follower.move(Direction.RIGHT, world);
 
         assertEquals(new GridPoint2(1, 1), follower.getDestination());
     }
 
     @Test
     void shouldNotEnterCellAnotherTankIsHeadingTo() {
-        Tank first = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
-        Tank second = new Tank(new GridPoint2(3, 1), Direction.LEFT, SECONDS_PER_CELL);
-        Level level = new Level(10, 8, List.of(first, second));
+        GameWorld world = TestTanks.world();
+        Tank first = tank(1, 1, Direction.RIGHT);
+        Tank second = tank(3, 1, Direction.LEFT);
+        world.add(first);
+        world.add(second);
 
-        first.move(Direction.RIGHT, level);
-        second.move(Direction.LEFT, level);
+        first.move(Direction.RIGHT, world);
+        second.move(Direction.LEFT, world);
 
         assertEquals(new GridPoint2(2, 1), first.getDestination());
         assertEquals(new GridPoint2(3, 1), second.getDestination());
@@ -36,24 +39,27 @@ class TankCollisionTest {
 
     @Test
     void shouldEnterCellAfterAnotherTankLeftIt() {
-        Tank leaving = new Tank(new GridPoint2(2, 1), Direction.RIGHT, SECONDS_PER_CELL);
-        Tank follower = new Tank(new GridPoint2(1, 1), Direction.RIGHT, SECONDS_PER_CELL);
-        Level level = new Level(10, 8, List.of(leaving, follower));
+        GameWorld world = TestTanks.world();
+        Tank leaving = tank(2, 1, Direction.RIGHT);
+        Tank follower = tank(1, 1, Direction.RIGHT);
+        world.add(leaving);
+        world.add(follower);
 
-        leaving.move(Direction.RIGHT, level);
-        leaving.update(1f);
-        follower.move(Direction.RIGHT, level);
+        leaving.move(Direction.RIGHT, world);
+        world.update(1f);
+        follower.move(Direction.RIGHT, world);
 
         assertEquals(new GridPoint2(2, 1), follower.getDestination());
     }
 
     @Test
     void shouldStopAtLevelBorder() {
-        Tank tank = new Tank(new GridPoint2(9, 7), Direction.UP, SECONDS_PER_CELL);
-        Level level = new Level(10, 8, List.of(tank));
+        GameWorld world = TestTanks.world();
+        Tank tank = tank(9, 7, Direction.UP);
+        world.add(tank);
 
-        tank.move(Direction.RIGHT, level);
-        tank.move(Direction.UP, level);
+        tank.move(Direction.RIGHT, world);
+        tank.move(Direction.UP, world);
 
         assertEquals(new GridPoint2(9, 7), tank.getDestination());
         assertEquals(Direction.UP, tank.getDirection());

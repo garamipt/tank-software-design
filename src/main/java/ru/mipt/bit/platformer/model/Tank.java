@@ -1,73 +1,84 @@
 package ru.mipt.bit.platformer.model;
 
-import static com.badlogic.gdx.math.MathUtils.clamp;
-
 import com.badlogic.gdx.math.GridPoint2;
 
-public class Tank implements GameObject, Updatable, Occupant {
-    private static final float MOVEMENT_STARTED = 0f;
-    private static final float MOVEMENT_COMPLETED = 1f;
-
-    private final GridPoint2 coordinates;
-    private final GridPoint2 destination;
-    private final float secondsPerCell;
+public class Tank implements LevelObject {
+    private final GridMovement movement;
+    private final TankSettings settings;
 
     private Direction direction;
-    private float movementProgress = MOVEMENT_COMPLETED;
+    private int health;
+    private float reloadRemaining;
 
-    public Tank(GridPoint2 initialCoordinates, Direction initialDirection, float secondsPerCell) {
-        this.coordinates = new GridPoint2(initialCoordinates);
-        this.destination = new GridPoint2(initialCoordinates);
+    public Tank(GridPoint2 initialCoordinates, Direction initialDirection, TankSettings settings) {
+        this.movement = new GridMovement(initialCoordinates, settings.secondsPerCell());
+        this.settings = settings;
         this.direction = initialDirection;
-        this.secondsPerCell = secondsPerCell;
+        this.health = settings.health();
     }
 
     public void move(Direction direction, CollisionChecker collisionChecker) {
-        if (isMoving()) {
+        if (isDestroyed() || movement.isMoving()) {
             return;
         }
-        GridPoint2 next = direction.stepFrom(coordinates);
+        GridPoint2 next = direction.stepFrom(movement.getCoordinates());
         if (collisionChecker.isFree(next)) {
-            destination.set(next);
-            movementProgress = MOVEMENT_STARTED;
+            movement.startTowards(next);
         }
         this.direction = direction;
     }
 
+    public void shoot(World world) {
+        if (isDestroyed() || isReloading()) {
+            return;
+        }
+        reloadRemaining = settings.reloadSeconds();
+        GridPoint2 bulletPosition = direction.stepFrom(movement.getDestination());
+        world.add(new Bullet(bulletPosition, direction, settings.bullet(), world));
+    }
+
     @Override
     public void update(float deltaTime) {
-        movementProgress =
-                clamp(
-                        movementProgress + deltaTime / secondsPerCell,
-                        MOVEMENT_STARTED,
-                        MOVEMENT_COMPLETED);
-        if (!isMoving()) {
-            coordinates.set(destination);
-        }
+        movement.update(deltaTime);
+        reloadRemaining = Math.max(0f, reloadRemaining - deltaTime);
+    }
+
+    @Override
+    public void receiveHit(int damage) {
+        health -= damage;
+    }
+
+    @Override
+    public boolean isDestroyed() {
+        return health <= 0;
     }
 
     @Override
     public boolean occupies(GridPoint2 point) {
-        return coordinates.equals(point) || destination.equals(point);
+        return movement.occupies(point);
     }
 
-    private boolean isMoving() {
-        return movementProgress < MOVEMENT_COMPLETED;
+    private boolean isReloading() {
+        return reloadRemaining > 0f;
+    }
+
+    public int getHealth() {
+        return health;
     }
 
     @Override
     public GridPoint2 getCoordinates() {
-        return new GridPoint2(coordinates);
+        return movement.getCoordinates();
     }
 
     @Override
     public GridPoint2 getDestination() {
-        return new GridPoint2(destination);
+        return movement.getDestination();
     }
 
     @Override
     public float getMovementProgress() {
-        return movementProgress;
+        return movement.getProgress();
     }
 
     public Direction getDirection() {

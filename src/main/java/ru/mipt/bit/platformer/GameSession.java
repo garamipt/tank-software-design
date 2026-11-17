@@ -1,6 +1,7 @@
 package ru.mipt.bit.platformer;
 
 import com.badlogic.gdx.utils.Disposable;
+import java.util.List;
 import ru.mipt.bit.platformer.control.Command;
 import ru.mipt.bit.platformer.control.CommandSource;
 import ru.mipt.bit.platformer.graphics.Renderer;
@@ -18,7 +19,8 @@ public class GameSession implements Disposable {
     }
 
     public void update(float deltaTime) {
-        for (Command command : commandSource.getActiveCommands()) {
+        List<Command> commands = commandSource.getActiveCommands();
+        for (Command command : commands) {
             command.execute();
         }
         world.update(deltaTime);

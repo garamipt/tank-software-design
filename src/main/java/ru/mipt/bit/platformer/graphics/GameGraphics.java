@@ -14,40 +14,52 @@ import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Interpolation;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import ru.mipt.bit.platformer.model.GameObject;
+import ru.mipt.bit.platformer.model.LevelListener;
+import ru.mipt.bit.platformer.model.LevelObject;
 
-public class GameGraphics implements Renderer {
+public class GameGraphics implements Renderer, LevelListener {
     private final TiledMap tiledMap;
     private final Batch batch;
     private final MapRenderer levelRenderer;
     private final TileMovement tileMovement;
     private final Color backgroundColor;
+    private final AppearanceResolver appearances;
 
     private final Map<String, Texture> textures = new HashMap<>();
-    private final List<GameObjectGraphics> objects = new ArrayList<>();
+    private final Map<GameObject, GameObjectGraphics> objects = new LinkedHashMap<>();
 
     public GameGraphics(
-            TiledMap tiledMap, Color backgroundColor, Interpolation movementInterpolation) {
+            TiledMap tiledMap,
+            Color backgroundColor,
+            Interpolation movementInterpolation,
+            AppearanceResolver appearances) {
         this.tiledMap = tiledMap;
         this.batch = new SpriteBatch();
         this.levelRenderer = createSingleLayerMapRenderer(tiledMap, batch);
         this.backgroundColor = new Color(backgroundColor);
+        this.appearances = appearances;
 
         TiledMapTileLayer groundLayer = getSingleLayer(tiledMap);
         this.tileMovement = new TileMovement(groundLayer, movementInterpolation);
     }
 
-    public void add(GameObject object, String texturePath) {
-        add(object, texturePath, Color.WHITE);
+    @Override
+    public void onObjectAdded(LevelObject object) {
+        Appearance appearance = appearances.appearanceOf(object);
+        Texture texture = textures.computeIfAbsent(appearance.texturePath(), Texture::new);
+        objects.put(
+                object,
+                new GameObjectGraphics(
+                        object, new TextureRegion(texture), appearance.tint(), tileMovement));
     }
 
-    public void add(GameObject object, String texturePath, Color tint) {
-        Texture texture = textures.computeIfAbsent(texturePath, Texture::new);
-        objects.add(new GameObjectGraphics(object, new TextureRegion(texture), tint, tileMovement));
+    @Override
+    public void onObjectRemoved(LevelObject object) {
+        objects.remove(object);
     }
 
     @Override
@@ -59,7 +71,7 @@ public class GameGraphics implements Renderer {
         levelRenderer.render();
 
         batch.begin();
-        for (GameObjectGraphics object : objects) {
+        for (GameObjectGraphics object : objects.values()) {
             object.render(batch);
         }
         batch.end();

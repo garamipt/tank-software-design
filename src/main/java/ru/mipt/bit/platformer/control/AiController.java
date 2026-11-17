@@ -1,22 +1,30 @@
 package ru.mipt.bit.platformer.control;
 
 import java.util.List;
-import ru.mipt.bit.platformer.model.CollisionChecker;
+import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.Tank;
+import ru.mipt.bit.platformer.model.World;
 
 public class AiController implements CommandSource {
     private final Tank tank;
-    private final MovementStrategy strategy;
-    private final CollisionChecker collisionChecker;
+    private final TankStrategy strategy;
+    private final World world;
 
-    public AiController(Tank tank, MovementStrategy strategy, CollisionChecker collisionChecker) {
+    public AiController(Tank tank, TankStrategy strategy, World world) {
         this.tank = tank;
         this.strategy = strategy;
-        this.collisionChecker = collisionChecker;
+        this.world = world;
     }
 
     @Override
     public List<Command> getActiveCommands() {
-        return List.of(new MoveCommand(tank, strategy.chooseDirection(), collisionChecker));
+        return List.of(toCommand(strategy.chooseAction()));
+    }
+
+    private Command toCommand(TankAction action) {
+        return switch (action) {
+            case TankAction.Move(Direction direction) -> new MoveCommand(tank, direction, world);
+            case TankAction.Shoot() -> new ShootCommand(tank, world);
+        };
     }
 }

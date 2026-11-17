@@ -19,29 +19,43 @@ import ru.mipt.bit.platformer.control.CompositeCommandSource;
 import ru.mipt.bit.platformer.control.GdxKeyboardState;
 import ru.mipt.bit.platformer.control.InputController;
 import ru.mipt.bit.platformer.control.MoveCommand;
-import ru.mipt.bit.platformer.control.MovementStrategy;
+import ru.mipt.bit.platformer.control.ShootCommand;
+import ru.mipt.bit.platformer.control.TankStrategy;
+import ru.mipt.bit.platformer.graphics.Appearance;
 import ru.mipt.bit.platformer.graphics.GameGraphics;
 import ru.mipt.bit.platformer.level.LevelLayoutSource;
-import ru.mipt.bit.platformer.model.CollisionChecker;
+import ru.mipt.bit.platformer.model.Bullet;
+import ru.mipt.bit.platformer.model.BulletSettings;
 import ru.mipt.bit.platformer.model.Direction;
+import ru.mipt.bit.platformer.model.GameObject;
 import ru.mipt.bit.platformer.model.GameWorld;
 import ru.mipt.bit.platformer.model.Level;
 import ru.mipt.bit.platformer.model.LevelLayout;
 import ru.mipt.bit.platformer.model.Obstacle;
-import ru.mipt.bit.platformer.model.Occupant;
 import ru.mipt.bit.platformer.model.Tank;
-import ru.mipt.bit.platformer.model.Updatable;
+import ru.mipt.bit.platformer.model.TankSettings;
 
 public class LevelLoader {
-    private static final String TANK_TEXTURE_PATH = "images/tank_blue.png";
-    private static final String TREE_TEXTURE_PATH = "images/greenTree.png";
-    private static final float PLAYER_SECONDS_PER_CELL = 0.4f;
+    private static final Appearance PLAYER_APPEARANCE =
+            new Appearance("images/tank_blue.png", Color.WHITE);
+    private static final Appearance BOT_APPEARANCE =
+            new Appearance("images/tank_blue.png", new Color(1f, 0.55f, 0.55f, 1f));
+    private static final Appearance TREE_APPEARANCE =
+            new Appearance("images/greenTree.png", Color.WHITE);
+    private static final Appearance BULLET_APPEARANCE =
+            new Appearance("images/bullet.png", Color.WHITE);
+
+    private static final BulletSettings BULLET_SETTINGS = new BulletSettings(25, 0.08f);
+    private static final TankSettings PLAYER_SETTINGS =
+            new TankSettings(0.4f, 100, 0.5f, BULLET_SETTINGS);
+    private static final TankSettings BOT_SETTINGS =
+            new TankSettings(0.6f, 50, 1.5f, BULLET_SETTINGS);
     private static final Direction PLAYER_INITIAL_DIRECTION = Direction.UP;
-    private static final float BOT_SECONDS_PER_CELL = 0.6f;
     private static final Direction BOT_INITIAL_DIRECTION = Direction.DOWN;
-    private static final Color BOT_TINT = new Color(1f, 0.55f, 0.55f, 1f);
+
     private static final Color BACKGROUND_COLOR = new Color(0f, 0f, 0.2f, 1f);
     private static final Interpolation MOVEMENT_INTERPOLATION = Interpolation.smooth;
+    private static final int SHOOT_KEY = Keys.SPACE;
     private static final Map<Integer, Direction> MOVEMENT_KEYS = new LinkedHashMap<>();
 
     static {
@@ -57,12 +71,12 @@ public class LevelLoader {
 
     private final String mapPath;
     private final LevelLayoutSource layoutSource;
-    private final Supplier<MovementStrategy> botStrategyFactory;
+    private final Supplier<TankStrategy> botStrategyFactory;
 
     public LevelLoader(
             String mapPath,
             LevelLayoutSource layoutSource,
-            Supplier<MovementStrategy> botStrategyFactory) {
+            Supplier<TankStrategy> botStrategyFactory) {
         this.mapPath = mapPath;
         this.layoutSource = layoutSource;
         this.botStrategyFactory = botStrategyFactory;
@@ -74,65 +88,60 @@ public class LevelLoader {
         LevelLayout layout =
                 layoutSource.createLayout(groundLayer.getWidth(), groundLayer.getHeight());
 
-        List<Obstacle> obstacles = layout.obstaclePositions().stream().map(Obstacle::new).toList();
-        Tank player =
-                new Tank(
-                        layout.playerPosition(), PLAYER_INITIAL_DIRECTION, PLAYER_SECONDS_PER_CELL);
+        Tank player = new Tank(layout.playerPosition(), PLAYER_INITIAL_DIRECTION, PLAYER_SETTINGS);
         List<Tank> bots =
                 layout.botPositions().stream()
-                        .map(
-                                position ->
-                                        new Tank(
-                                                position,
-                                                BOT_INITIAL_DIRECTION,
-                                                BOT_SECONDS_PER_CELL))
+                        .map(position -> new Tank(position, BOT_INITIAL_DIRECTION, BOT_SETTINGS))
                         .toList();
+        List<Obstacle> obstacles = layout.obstaclePositions().stream().map(Obstacle::new).toList();
 
-        List<Occupant> occupants = new ArrayList<>(obstacles);
-        occupants.add(player);
-        occupants.addAll(bots);
-        Level level = new Level(groundLayer.getWidth(), groundLayer.getHeight(), occupants);
+        GameWorld world = new GameWorld(new Level(groundLayer.getWidth(), groundLayer.getHeight()));
+        GameGraphics graphics =
+                new GameGraphics(
+                        tiledMap,
+                        BACKGROUND_COLOR,
+                        MOVEMENT_INTERPOLATION,
+                        object -> appearanceOf(object, player));
+        world.addListener(graphics);
 
-        List<Updatable> tanks = new ArrayList<>();
-        tanks.add(player);
-        tanks.addAll(bots);
+        world.add(player);
+        bots.forEach(world::add);
+        obstacles.forEach(world::add);
 
-        return new GameSession(
-                createCommandSource(player, bots, level),
-                new GameWorld(tanks),
-                createGraphics(tiledMap, player, bots, obstacles));
+        return new GameSession(createCommandSource(player, bots, world), world, graphics);
     }
 
-    private CommandSource createCommandSource(
-            Tank player, List<Tank> bots, CollisionChecker collisionChecker) {
+    private CommandSource createCommandSource(Tank player, List<Tank> bots, GameWorld world) {
         List<CommandSource> sources = new ArrayList<>();
-        sources.add(createInputController(player, collisionChecker));
+        sources.add(createInputController(player, world));
         for (Tank bot : bots) {
-            sources.add(new AiController(bot, botStrategyFactory.get(), collisionChecker));
+            sources.add(new AiController(bot, botStrategyFactory.get(), world));
         }
         return new CompositeCommandSource(sources);
     }
 
-    private InputController createInputController(Tank player, CollisionChecker collisionChecker) {
+    private InputController createInputController(Tank player, GameWorld world) {
         InputController inputController = new InputController(new GdxKeyboardState());
         MOVEMENT_KEYS.forEach(
                 (key, direction) ->
-                        inputController.bind(
-                                key, new MoveCommand(player, direction, collisionChecker)));
+                        inputController.bind(key, new MoveCommand(player, direction, world)));
+        inputController.bind(SHOOT_KEY, new ShootCommand(player, world));
         return inputController;
     }
 
-    private GameGraphics createGraphics(
-            TiledMap tiledMap, Tank player, List<Tank> bots, List<Obstacle> obstacles) {
-        GameGraphics graphics =
-                new GameGraphics(tiledMap, BACKGROUND_COLOR, MOVEMENT_INTERPOLATION);
-        graphics.add(player, TANK_TEXTURE_PATH);
-        for (Tank bot : bots) {
-            graphics.add(bot, TANK_TEXTURE_PATH, BOT_TINT);
+    private static Appearance appearanceOf(GameObject object, Tank player) {
+        if (object == player) {
+            return PLAYER_APPEARANCE;
         }
-        for (Obstacle obstacle : obstacles) {
-            graphics.add(obstacle, TREE_TEXTURE_PATH);
+        if (object instanceof Tank) {
+            return BOT_APPEARANCE;
         }
-        return graphics;
+        if (object instanceof Bullet) {
+            return BULLET_APPEARANCE;
+        }
+        if (object instanceof Obstacle) {
+            return TREE_APPEARANCE;
+        }
+        throw new IllegalArgumentException("No appearance for " + object);
     }
 }
