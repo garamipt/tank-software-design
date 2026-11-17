@@ -7,6 +7,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import java.util.Random;
 import java.util.function.Supplier;
 import ru.mipt.bit.platformer.control.RandomMovementStrategy;
+import ru.mipt.bit.platformer.control.RandomTankStrategy;
 import ru.mipt.bit.platformer.level.FileLevelLayoutSource;
 import ru.mipt.bit.platformer.level.LevelLayoutSource;
 import ru.mipt.bit.platformer.level.RandomBotsLayoutSource;
@@ -18,6 +19,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     private static final String RANDOM_LEVEL_ARGUMENT = "random";
     private static final int RANDOM_OBSTACLE_COUNT = 10;
     private static final int BOT_COUNT = 4;
+    private static final double BOT_SHOOT_PROBABILITY = 0.05;
 
     private final Supplier<GameSession> sessionFactory;
     private GameSession session;
@@ -62,7 +64,14 @@ public class GameDesktopLauncher implements ApplicationListener {
         LevelLayoutSource layoutSource =
                 new RandomBotsLayoutSource(createLayoutSource(args, random), BOT_COUNT, random);
         LevelLoader levelLoader =
-                new LevelLoader(MAP_PATH, layoutSource, () -> new RandomMovementStrategy(random));
+                new LevelLoader(
+                        MAP_PATH,
+                        layoutSource,
+                        () ->
+                                new RandomTankStrategy(
+                                        new RandomMovementStrategy(random),
+                                        BOT_SHOOT_PROBABILITY,
+                                        random));
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         // level width: 10 tiles x 128px, height: 8 tiles x 128px

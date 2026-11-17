@@ -4,44 +4,29 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.math.GridPoint2;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 class LevelTest {
 
-    @Test
-    void shouldTreatEmptyCellAsFree() {
-        Level level = new Level(10, 8, List.of());
-
-        assertTrue(level.isFree(new GridPoint2(5, 5)));
-    }
-
-    @Test
-    void shouldTreatCellWithObstacleAsOccupied() {
-        Level level = new Level(10, 8, List.of(new Obstacle(new GridPoint2(1, 3))));
-
-        assertFalse(level.isFree(new GridPoint2(1, 3)));
+    @ParameterizedTest
+    @CsvSource({"0, 0", "9, 7", "5, 5"})
+    void shouldContainCellsInsideLevel(int x, int y) {
+        assertTrue(new Level(10, 8).contains(new GridPoint2(x, y)));
     }
 
     @ParameterizedTest
     @CsvSource({"-1, 0", "0, -1", "10, 0", "0, 8"})
-    void shouldTreatCellOutsideLevelAsOccupied(int x, int y) {
-        Level level = new Level(10, 8, List.of());
-
-        assertFalse(level.isFree(new GridPoint2(x, y)));
+    void shouldNotContainCellsOutsideLevel(int x, int y) {
+        assertFalse(new Level(10, 8).contains(new GridPoint2(x, y)));
     }
 
     @Test
-    void shouldTreatCellsOfMovingTankAsOccupied() {
-        Tank tank = new Tank(new GridPoint2(1, 1), Direction.RIGHT, 0.4f);
-        Level level = new Level(10, 8, List.of(tank));
+    void shouldTreatSingleCellLevelAsContainingOnlyOrigin() {
+        Level level = new Level(1, 1);
 
-        tank.move(Direction.RIGHT, point -> true);
-
-        assertFalse(level.isFree(new GridPoint2(1, 1)));
-        assertFalse(level.isFree(new GridPoint2(2, 1)));
-        assertTrue(level.isFree(new GridPoint2(3, 1)));
+        assertTrue(level.contains(new GridPoint2(0, 0)));
+        assertFalse(level.contains(new GridPoint2(1, 0)));
     }
 }
